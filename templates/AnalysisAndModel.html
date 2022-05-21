@@ -1,0 +1,155 @@
+<!doctype html>
+
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/Analysis.css') }}">
+ <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/lumen.css') }}">
+ <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+<html>
+    {% include "header.html" %}
+
+<body style="font-family:arial, sans-serif">
+    <div id="videoButton"> Video</div>
+   
+    <div id= "videoDisplay" class="window z-depth-3" style="width: 300px; height:300px; display: none;">
+
+        <div style="margin: 10px;">
+            <label for="videoFrame">Frame:</label>
+            <input type="number" id="videoFrame" name="videoFrame" style="width: 50px;">
+            <button id="setvideoFrame">Jump</button>
+        </div>
+        <video controls style="width: 80%; height:80%;" id="videoArea">
+        
+        <source src="{{ url_for('static',filename='uploads/'+videoName)}}" type="video/mp4"> 
+        
+      
+    </div>
+    
+    
+        
+        <div id="model">
+            <div id="buttonArea">Frame: </div>
+            <div id="humanModel" class="humanModel"></div>
+           
+        </div>
+        <hr>
+        
+        <h5>Euclidean distance from (0,0,-1) for each joints</h5>
+        <div id="eGraph" class="graph"></div>
+    
+    
+
+    
+    {% include "Profile.html" %}
+    
+
+</body>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"> </script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/javascript">
+
+      
+    var animgraphs = {{animData | safe}}; 
+    $.each(animgraphs, function(name, fig){
+        $("#buttonArea").append('<button type="button" class="frameRange" id="'+name +'">'+name+'</button>');
+        $('#humanModel').append('<div id="displayAnim"></div>');
+
+    });
+    let [firstAnim] = Object.keys(animgraphs);
+    Plotly.newPlot('displayAnim',animgraphs[firstAnim]);
+      
+</script>
+
+<script type="text/javascript">
+
+      
+</script>
+
+<script type="text/javascript">
+    var graphsData = {{graphsData | safe}}; 
+    $('#eGraph').append('<div id="displaye"></div>');
+
+
+    let [firstGraph] = Object.keys(graphsData);
+    Plotly.newPlot('displaye',graphsData[firstGraph]['e']);
+
+      
+</script>
+
+
+<script>
+    $(".frameRange").click(function(){
+        Plotly.newPlot('displayAnim',animgraphs[this.id],{});
+        Plotly.newPlot('displaye',graphsData[this.id]['e']);
+
+    });
+
+
+</script>
+
+<script>
+     $(function() { 
+        var frameList = [];
+         $("#addFrame").click(function (event) { 
+                //for (let f=startFrame; f<=endFrame; f++){
+                var f = $("#displayAnim > .plotly >.svg-container > .main-svg > .infolayer > .slider-container >.slider-group > .slider-label").text();
+                if (!frameList.includes(f)){
+                    frameList.push(f);
+                    console.log(frameList)
+                    var str = '/DoAnalysis/' + f;
+                    $.ajax({
+                        url: str,
+                        dataType: "text",
+                        success: function(data){
+                            imgList = JSON.parse(data);
+                            var tmp = '<tr><td>' + f + '</td>'; 
+                            $.each(imgList, function(key, i){
+                                tmp += '<td class='+ key + '>' ;
+                                $.each(i, function(k, img){
+                                    tmp += '<img src="/static/Image/' + f + '/' + img + '">';
+                                    
+                                })
+                                tmp += '</td>';
+                                });
+                                tmp += '</tr>'
+                                $("#analysisTable").append(tmp);
+                        }
+                    });
+                }
+         })
+        });
+                                
+                          
+</script>
+<link href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css" />
+<!-- jQuery Reference (required for jQuery UI) -->
+<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+<!-- jQuery UI Reference -->
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $(function() {
+            $("#videoDisplay").resizable({alsoResize: "#videoArea"});
+            $("#videoDisplay").draggable().css("position", "absolute");
+          
+            })
+
+        });
+    
+    $("#videoButton").click(function(){
+        $("#videoDisplay").toggle();
+    });
+
+    $("#setvideoFrame").click(function(){
+        var vid = document.getElementById("videoArea");
+        var frame = document.getElementById("videoFrame").value;
+        var fps = {{fps}};
+      
+        var setFrame = (frame/fps).toFixed(2);
+
+        vid.currentTime = setFrame;
+    });
+    
+
+</script>
+
+

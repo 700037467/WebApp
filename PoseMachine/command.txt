@@ -1,0 +1,14 @@
+cd VideoPose3D 
+cd videos 
+ffmpeg -i w.mp4 -ss 0:01 -to 0:03 -c copy w2.mp4
+ffmpeg -i w2.mp4 -filter "minterpolate='fps=30'" -crf 0 w1.mp4
+cd ../ 
+cd inference 
+python3 infer_video_d2.py --cfg COCO-Keypoints/keypoint_rcnn_R_101_FPN_3x.yaml --output-dir /Users/azaelfang/Desktop/Y3T1\ 2022/fyp/PoseMachine/VideoPose3D/outputs --image-ext mp4 /Users/azaelfang/Desktop/Y3T1\ 2022/fyp/PoseMachine/VideoPose3D/videos/w1.mp4
+cd ../ 
+cd data 
+python3 prepare_data_2d_custom.py -i /Users/azaelfang/Desktop/Y3T1\ 2022/fyp/PoseMachine/VideoPose3D/outputs -o w1.mp4
+cd ../ 
+python3 run.py -d custom -k w1.mp4 -arc 3,3,3,3,3 -c checkpoint --evaluate pretrained_h36m_detectron_coco.bin --render --viz-subject w1.mp4 --viz-action custom --viz-camera 0 --viz-video /Users/azaelfang/Desktop/Y3T1\ 2022/fyp/PoseMachine/VideoPose3D/videos/w1.mp4 --viz-output w1.mp4 --viz-size 6
+python3 openNpy.py 
+python3 SetPelvisToOrigin.py 
